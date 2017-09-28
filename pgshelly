@@ -1,0 +1,90 @@
+#!/bin/bash
+
+# Example:
+#
+# CREATE DATABASE mypets
+# CREATE TABLE dogs (name VARCHAR PRIMARY KEY, breed VARCHAR);
+# CREATE FUNCTION about(dogs) RETURNS text LANGUAGE SQL AS $$
+#   SELECT $1.name || ' is a ' || $1.breed;
+# $$
+#
+# mypets dogs new --name=Pluto --breed=bloodhound
+# mypets dogs new --name=Spike --breed=bulldog
+# mypets dogs show
+# mypets dogs new --name=Pongo --breed=dalmatian
+# mypets dogs show --name=Spike
+# mypets dogs new --name='Santa'\''s Little Helper' --breed=greyhound
+# mypets dogs show
+# mypets dogs new --name=Ren --breed=Stimpy
+# mypets dogs show
+# mypets dogs set --name=Ren to --breed=chihuahua
+# mypets dogs show
+# mypets dogs delete --name=Spike
+# mypets dogs show
+# mypets dogs about --name=Ren
+
+DBNAME=$(basename $0)
+DBTABLE=$1
+COMMAND=$2
+
+SET=0
+
+shift
+shift
+
+if [ ! -z "$1" ]; then
+    if [ "$1" == "to" ]; then
+        SET=1
+        shift
+        argcore=${1#--}
+        fieldname=${argcore%=*}
+        value=${argcore#*=}
+        setlist="$fieldname = \$\$$value\$\$"
+    else
+        argcore=${1#--}
+        fieldname=${argcore%=*}
+        value=${argcore#*=}
+        whereclause="WHERE $fieldname = \$\$$value\$\$"
+        fieldlist="$fieldname"
+        valuelist="\$\$$value\$\$"
+    fi
+fi
+shift
+
+while [ ! -z "$1" ]; do
+    if [ "$1" == "to" ]; then
+        SET=1
+        shift
+        argcore=${1#--}
+        fieldname=${argcore%=*}
+        value=${argcore#*=}
+        setlist="$fieldname = \$\$$value\$\$"
+        shift
+        continue
+    fi
+    argcore=${1#--}
+    fieldname=${argcore%=*}
+    value=${argcore#*=}
+    if [ "$SET" -eq "1" ]; then
+        setlist="$setlist, $fieldname = \$\$$value\$\$"
+    else
+        whereclause="$whereclause AND $fieldname = \$\$$value\$\$"
+    fi
+    fieldlist="$fieldlist,$fieldname"
+    valuelist="$valuelist,\$\$$value\$\$"
+    shift
+done
+
+if [ "$COMMAND" == "show" ]; then
+    SQL="SELECT * FROM $DBTABLE $whereclause;"
+elif [ "$COMMAND" == "new" ]; then
+    SQL="INSERT INTO $DBTABLE ($fieldlist) VALUES ($valuelist);"
+elif [ "$COMMAND" == "set" ]; then
+    SQL="UPDATE $DBTABLE SET $setlist $whereclause"
+elif [ "$COMMAND" == "delete" ]; then
+    SQL="DELETE FROM $DBTABLE $whereclause;"
+else
+    SQL="SELECT $COMMAND($DBTABLE.*) FROM $DBTABLE $whereclause;"
+fi
+
+psql -c "$SQL" $DBNAME
