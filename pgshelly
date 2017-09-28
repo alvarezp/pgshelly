@@ -84,7 +84,7 @@ elif [ "$COMMAND" == "set" ]; then
 elif [ "$COMMAND" == "delete" ]; then
     SQL="DELETE FROM $DBTABLE $whereclause;"
 else
-    SQL="SELECT $COMMAND($DBTABLE.*) FROM $DBTABLE $whereclause;"
+    SQL="SELECT $DBTABLE.$COMMAND FROM $DBTABLE $whereclause;"
 fi
 
 psql -c "$SQL" $DBNAME

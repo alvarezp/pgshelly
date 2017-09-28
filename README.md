@@ -182,16 +182,15 @@ $ mypets dogs show
 
 ```
 And we can create custom, programmable actions from within PostgreSQL,
-taking advantage of user-defined functions and functional notation for
+taking advantage of user-defined functions and field notation for
 composite types:
 ```
 
 [  0][Wed Sep 27 21:53:53 -0500 -- alvarezp@alvarezp-samsung:~]
 $ mypets dogs about --name=Ren
-ERROR:  function about(dogs) does not exist
-LINE 1: SELECT about(dogs.*) FROM dogs WHERE name = $$Ren$$;
+ERROR:  column dogs.about does not exist
+LINE 1: SELECT dogs.about FROM dogs WHERE name = $$Ren$$;
                ^
-HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
 
 [  1][Wed Sep 27 21:54:05 -0500 -- alvarezp@alvarezp-samsung:~]
 $ psql mypets
