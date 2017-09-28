@@ -1,19 +1,54 @@
 pgshelly
 --------
 
-Pgshelly lets us use a shell-like interface to manipulate PostgreSQL.
+*Pgshelly* lets us use a shell-like interface to manipulate PostgreSQL.
 
 For now I only have an example/tutorial:
 
-I will quickly create an app called mypets. It will let me
-store dog data at first, but I can easily expand it to cats.
+I will quickly create an app called `mypets`. It will let me
+store dog data at first, but I can easily expand it to cats by
+adding another table.
 
-Right now I have pgshelly under bin/
+We will symlink our new app, `./mypets` to *pgshelly*. With this,
+*pgshelly* will try to connect to the database named after the
+application name, in this case, `mypets`.
 
-First, this is where pgshelly and to which we are going to
-link our new app, ```mypets```. pgshelly will try to connect
-to the database named after the application name, in this case,
-```mypets```.
+## Example in a nutshell
+
+Try this on PostgreSQL:
+```
+CREATE DATABASE mypets
+CREATE TABLE dogs (name VARCHAR PRIMARY KEY, breed VARCHAR);
+CREATE FUNCTION about(dogs) RETURNS text LANGUAGE SQL AS $$
+  SELECT $1.name || ' is a ' || $1.breed;
+$$
+```
+And then try this on the command-line:
+```
+ln -s pgshelly mypets #Adjust this to the correct paths
+
+./mypets dogs new --name=Pluto --breed=bloodhound
+./mypets dogs new --name=Spike --breed=bulldog
+./mypets dogs show
+./mypets dogs new --name=Pongo --breed=dalmatian
+./mypets dogs show --name=Spike
+./mypets dogs new --name='Santa'\''s Little Helper' --breed=greyhound
+./mypets dogs show
+./mypets dogs new --name=Ren --breed=Stimpy
+./mypets dogs show
+./mypets dogs set --name=Ren to --breed=chihuahua
+./mypets dogs show
+./mypets dogs delete --name=Spike
+./mypets dogs show
+./mypets dogs about --name=Ren
+```
+## Example in detail
+
+On my laptop, `pgshelly` lives under `$HOME/bin/`, which I already
+have on my `$PATH`.
+
+I am symlinking `bin/mypets` to `bin/pgshelly` so I don't need
+the `./` prefix.
 
 ```
 [  0][Wed Sep 27 21:51:17 -0500 -- alvarezp@alvarezp-samsung:~]
@@ -32,20 +67,24 @@ $ mypets dogs show
 psql: FATAL:  database "mypets" does not exist
 
 ```
-So the database "mypets" doesn't exist. Let's create it.
+Right, the database `mypets` doesn't exist yet. Let's create it.
 
 ```
 [  2][Wed Sep 27 21:51:35 -0500 -- alvarezp@alvarezp-samsung:~]
 $ createdb mypets
+```
 
+... and retry:
+
+```
 [  0][Wed Sep 27 21:51:49 -0500 -- alvarezp@alvarezp-samsung:~]
 $ mypets dogs show
 ERROR:  relation "dogs" does not exist
 LINE 1: SELECT * FROM dogs ;
                       ^
 ```
-The second argument to ```mypets``` is the "object" to work with. In
-this case, dogs, but we don't have a ```dogs``` table. Let's create it.
+The second argument to `mypets` is the "object" (table) to work with.
+In this case, dogs, but we don't have a `dogs` table. Let's create it.
 
 ```
 [  1][Wed Sep 27 21:51:57 -0500 -- alvarezp@alvarezp-samsung:~]
@@ -56,7 +95,9 @@ Type "help" for help.
 mypets=# CREATE TABLE dogs (name VARCHAR PRIMARY KEY, breed VARCHAR);
 CREATE TABLE
 mypets=# \q
-
+```
+Showing our dogs should now work:
+```
 [  0][Wed Sep 27 21:52:13 -0500 -- alvarezp@alvarezp-samsung:~]
 $ mypets dogs show
  name | breed 
@@ -86,8 +127,9 @@ $ mypets dogs show
  Pluto | bloodhound
  Spike | bulldog
 (2 rows)
-
-
+```
+Let's play some more:
+```
 [  0][Wed Sep 27 21:52:39 -0500 -- alvarezp@alvarezp-samsung:~]
 $ mypets dogs new --name=Pongo --breed=dalmatian
 INSERT 0 1
@@ -108,8 +150,8 @@ $ mypets dogs show --name=Spike
 (1 row)
 
 ```
-Quoting is not tested, but we use the double dollar sign so it should
-not be that bad:
+Quoting is not tested, but *pgshelly* uses the double dollar sign so
+it should not be so bad:
 
 ```
 [  0][Wed Sep 27 21:52:56 -0500 -- alvarezp@alvarezp-samsung:~]
@@ -183,7 +225,8 @@ $ mypets dogs show
 ```
 And we can create custom, programmable actions from within PostgreSQL,
 taking advantage of user-defined functions and field notation for
-composite types:
+composite types. First, let's try it without having one, just to see
+how it fails:
 ```
 
 [  0][Wed Sep 27 21:53:53 -0500 -- alvarezp@alvarezp-samsung:~]
@@ -191,7 +234,9 @@ $ mypets dogs about --name=Ren
 ERROR:  column dogs.about does not exist
 LINE 1: SELECT dogs.about FROM dogs WHERE name = $$Ren$$;
                ^
-
+```
+Let's create about():
+```
 [  1][Wed Sep 27 21:54:05 -0500 -- alvarezp@alvarezp-samsung:~]
 $ psql mypets
 psql (9.6.3, server 9.4.10)
@@ -202,7 +247,9 @@ mypets$# SELECT $1.name || ' is a ' || $1.breed;
 mypets$# $$;
 CREATE FUNCTION
 mypets=# \q
-
+```
+... and use it from `mypets`:
+```
 [  0][Wed Sep 27 21:54:31 -0500 -- alvarezp@alvarezp-samsung:~]
 $ mypets dogs about --name=Ren
        about        
