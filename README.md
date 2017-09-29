@@ -1,17 +1,9 @@
 pgshelly
 --------
 
-*Pgshelly* lets us use a shell-like interface to manipulate PostgreSQL.
-
-For now I only have an example/tutorial:
-
-I will quickly create an app called `mypets`. It will let me
-store dog data at first, but I can easily expand it to cats by
-adding another table.
-
-We will symlink our new app, `./mypets` to *pgshelly*. With this,
-*pgshelly* will try to connect to the database named after the
-application name, in this case, `mypets`.
+*Pgshelly* is a CLI to SQL translator. It lets the user manipulate
+PostgreSQL through typical shell-like commands. A database becomes
+an application by symlinking it to the *pgshelly* script.
 
 ## Example in a nutshell
 
@@ -43,6 +35,14 @@ ln -s pgshelly mypets #Adjust this to the correct paths
 ./mypets dogs about --name=Ren
 ```
 ## Example in detail
+
+Let's quickly create an app called `mypets`. It will let us
+store dog data at first, but we can easily expand it to cats by
+adding another table.
+
+We will symlink our new app, `./mypets` to *pgshelly*. With this,
+*pgshelly* will try to connect to the database named after the
+application name, in this case, `mypets`.
 
 On my laptop, `pgshelly` lives under `$HOME/bin/`, which I already
 have on my `$PATH`.
