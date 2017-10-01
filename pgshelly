@@ -17,7 +17,7 @@
 # mypets dogs show
 # mypets dogs new --name=Ren --breed=Stimpy
 # mypets dogs show
-# mypets dogs set --name=Ren to --breed=chihuahua
+# mypets dogs set --breed=chihuahua on --name=Ren
 # mypets dogs show
 # mypets dogs delete --name=Spike
 # mypets dogs show
@@ -28,52 +28,39 @@ DBTABLE=$1
 COMMAND=$2
 
 SET=0
+[ "$COMMAND" = "set" ] && SET=1
 
 shift
-shift
-
-if [ ! -z "$1" ]; then
-    if [ "$1" == "to" ]; then
-        SET=1
-        shift
-        argcore=${1#--}
-        fieldname=${argcore%=*}
-        value=${argcore#*=}
-        setlist="$fieldname = \$\$$value\$\$"
-    else
-        argcore=${1#--}
-        fieldname=${argcore%=*}
-        value=${argcore#*=}
-        whereclause="WHERE $fieldname = \$\$$value\$\$"
-        fieldlist="$fieldname"
-        valuelist="\$\$$value\$\$"
-    fi
-fi
 shift
 
 while [ ! -z "$1" ]; do
-    if [ "$1" == "to" ]; then
-        SET=1
-        shift
-        argcore=${1#--}
-        fieldname=${argcore%=*}
-        value=${argcore#*=}
-        setlist="$fieldname = \$\$$value\$\$"
+    argcore=${1#--}
+    if [ "$1" = "on" ]; then
+        SET=0
         shift
         continue
     fi
-    argcore=${1#--}
+    if [ "$1" = "$argcore" ]; then
+        echo "$DBNAME: unrecognized keyword: $1"
+        exit 2
+    fi
     fieldname=${argcore%=*}
     value=${argcore#*=}
     if [ "$SET" -eq "1" ]; then
-        setlist="$setlist, $fieldname = \$\$$value\$\$"
+        updates+=("$fieldname = \$\$$value\$\$")
     else
-        whereclause="$whereclause AND $fieldname = \$\$$value\$\$"
+        conditions+=("$fieldname = \$\$$value\$\$")
     fi
-    fieldlist="$fieldlist,$fieldname"
-    valuelist="$valuelist,\$\$$value\$\$"
+    fields+=("$fieldname")
+    values+=("\$\$$value\$\$")
     shift
 done
+
+setlist=$(printf -v var "%s, " "${updates[@]}"; echo "${var%, }")
+fieldlist=$(printf -v var "%s, " "${fields[@]}"; echo "${var%, }")
+valuelist=$(printf -v var "%s, " "${values[@]}"; echo "${var%, }")
+whereclause=$(echo -n "WHERE ("; printf -v var "%s) AND (" "${conditions[@]}"; echo "${var% AND (}")
+[ "$whereclause" = "WHERE ()" ] && unset whereclause
 
 if [ "$COMMAND" == "show" ]; then
     SQL="SELECT * FROM $DBTABLE $whereclause;"
@@ -87,4 +74,4 @@ else
     SQL="SELECT $DBTABLE.$COMMAND FROM $DBTABLE $whereclause;"
 fi
 
-psql -c "$SQL" $DBNAME
+psql -c "$SQL" "$DBNAME"

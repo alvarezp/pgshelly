@@ -28,7 +28,7 @@ ln -s pgshelly mypets #Adjust this to the correct paths
 ./mypets dogs show
 ./mypets dogs new --name=Ren --breed=Stimpy
 ./mypets dogs show
-./mypets dogs set --name=Ren to --breed=chihuahua
+./mypets dogs set --breed=chihuahua on --name=Ren
 ./mypets dogs show
 ./mypets dogs delete --name=Spike
 ./mypets dogs show
@@ -189,7 +189,7 @@ $ mypets dogs show
 
 
 [  0][Wed Sep 27 21:53:30 -0500 -- alvarezp@alvarezp-samsung:~]
-$ mypets dogs set --name=Ren to --breed=chihuahua
+$ mypets dogs set --breed=chihuahua on --name=Ren
 UPDATE 1
 
 [  0][Wed Sep 27 21:53:41 -0500 -- alvarezp@alvarezp-samsung:~]
