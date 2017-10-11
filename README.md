@@ -30,7 +30,7 @@ ln -s pgshelly mypets #Adjust this to the correct paths
 ./mypets dogs show
 ./mypets dogs set --breed=chihuahua on --name=Ren
 ./mypets dogs show
-./mypets dogs delete --name=Spike
+./mypets dogs del --name=Spike
 ./mypets dogs show
 ./mypets dogs about --name=Ren
 ```
@@ -209,7 +209,7 @@ $ mypets dogs show
 ```
 
 [  0][Wed Sep 27 21:53:43 -0500 -- alvarezp@alvarezp-samsung:~]
-$ mypets dogs delete --name=Spike
+$ mypets dogs del --name=Spike
 DELETE 1
 
 [  0][Wed Sep 27 21:53:51 -0500 -- alvarezp@alvarezp-samsung:~]

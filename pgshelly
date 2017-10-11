@@ -19,7 +19,7 @@
 # mypets dogs show
 # mypets dogs set --breed=chihuahua on --name=Ren
 # mypets dogs show
-# mypets dogs delete --name=Spike
+# mypets dogs del --name=Spike
 # mypets dogs show
 # mypets dogs about --name=Ren
 
@@ -68,7 +68,7 @@ elif [ "$COMMAND" == "new" ]; then
     SQL="INSERT INTO $DBTABLE ($fieldlist) VALUES ($valuelist);"
 elif [ "$COMMAND" == "set" ]; then
     SQL="UPDATE $DBTABLE SET $setlist $whereclause"
-elif [ "$COMMAND" == "delete" ]; then
+elif [ "$COMMAND" == "del" ]; then
     SQL="DELETE FROM $DBTABLE $whereclause;"
 else
     SQL="SELECT $DBTABLE.$COMMAND FROM $DBTABLE $whereclause;"
