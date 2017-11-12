@@ -32,7 +32,7 @@ ln -s pgshelly mypets #Adjust this to the correct paths
 ./mypets dogs show
 ./mypets dogs del --name=Spike
 ./mypets dogs show
-./mypets dogs about --name=Ren
+./mypets dogs about for --name=Ren
 ```
 ## Example in detail
 
@@ -230,10 +230,11 @@ how it fails:
 ```
 
 [  0][Wed Sep 27 21:53:53 -0500 -- alvarezp@alvarezp-samsung:~]
-$ mypets dogs about --name=Ren
-ERROR:  column dogs.about does not exist
-LINE 1: SELECT dogs.about FROM dogs WHERE name = $$Ren$$;
+$ mypets dogs about for --name=Ren
+ERROR:  function about(dogs) does not exist
+LINE 1: SELECT about(dogs.*) FROM dogs;
                ^
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
 ```
 Let's create about():
 ```
@@ -251,7 +252,7 @@ mypets=# \q
 ... and use it from `mypets`:
 ```
 [  0][Wed Sep 27 21:54:31 -0500 -- alvarezp@alvarezp-samsung:~]
-$ mypets dogs about --name=Ren
+$ mypets dogs about for --name=Ren
        about        
 --------------------
  Ren is a chihuahua

@@ -40,6 +40,7 @@ show_help() {
     echo "  $DBNAME <object> show --attr=val ..."
     echo "  $DBNAME <object> set  --attr=val ... on --attr=val ..."
     echo "  $DBNAME <object> del  --attr=val ..."
+    echo "  $DBNAME <object> <action> --param=val ... for --attr=val ..."
     echo
     echo "Object may have additional operations."
     echo "Please use $DBNAME --help-objects for more details."
@@ -67,16 +68,17 @@ if [ "$DBTABLE" = "--help-objects" ]; then
     show_object_help
 fi
 
-SET=0
-[ "$COMMAND" = "set" ] && SET=1
+WHERE=0
+[ "$COMMAND" = "new" ] || [ "$COMMAND" = "show" ] || [ "$COMMAND" = "del" ] && WHERE=1
 
 shift
 shift
 
 while [ ! -z "$1" ]; do
     argcore=${1#--}
-    if [ "$1" = "on" ]; then
-        SET=0
+    if [ "$1" = "on" -o "$1" = "for" ]; then
+        WHERE=1
+        PARAMS=0
         shift
         continue
     fi
@@ -86,8 +88,9 @@ while [ ! -z "$1" ]; do
     fi
     fieldname=${argcore%=*}
     value=${argcore#*=}
-    if [ "$SET" -eq "1" ]; then
+    if [ "$WHERE" -eq "0" ]; then
         updates+=("$fieldname = \$\$$value\$\$")
+        callparams+=("$fieldname := \$\$$value\$\$")
     else
         conditions+=("$fieldname = \$\$$value\$\$")
     fi
@@ -97,6 +100,7 @@ while [ ! -z "$1" ]; do
 done
 
 setlist=$(printf -v var "%s, " "${updates[@]}"; echo "${var%, }")
+params=$(printf -v var ", %s" "${callparams[@]}"; echo "${var%%, }")
 fieldlist=$(printf -v var "%s, " "${fields[@]}"; echo "${var%, }")
 valuelist=$(printf -v var "%s, " "${values[@]}"; echo "${var%, }")
 whereclause=$(echo -n "WHERE ("; printf -v var "%s) AND (" "${conditions[@]}"; echo "${var% AND (}")
@@ -111,7 +115,7 @@ elif [ "$COMMAND" == "set" ]; then
 elif [ "$COMMAND" == "del" ]; then
     SQL="DELETE FROM $DBTABLE $whereclause;"
 else
-    SQL="SELECT $DBTABLE.$COMMAND FROM $DBTABLE $whereclause;"
+    SQL="SELECT $COMMAND(${DBTABLE}.*${params}) FROM $DBTABLE $whereclause;"
 fi
 
 psql -c "$SQL" "$DBNAME"
