@@ -9,7 +9,7 @@ an application by symlinking it to the *pgshelly* script.
 
 Try this on PostgreSQL:
 ```
-CREATE DATABASE mypets
+CREATE DATABASE mypets;
 CREATE TABLE dogs (name VARCHAR PRIMARY KEY, breed VARCHAR);
 CREATE FUNCTION about(dogs) RETURNS text LANGUAGE SQL AS $$
   SELECT $1.name || ' is a ' || $1.breed;
